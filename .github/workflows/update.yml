@@ -1,0 +1,93 @@
+name: "Update"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '00 19 * * *'
+jobs:
+  updater:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Settings DoT DNS with systemd-resolved
+        run: |
+         sudo apt update
+         sudo apt install -y bind9-dnsutils sudo --no-install-suggests
+         sudo mkdir -pv /etc/systemd/resolved.conf.d/
+         echo -e "[Resolve]\nDNS=8.8.4.4#dns.google\nFallbackDNS=\nDNSOverTLS=yes\nDNSSEC=yes\nCache=yes\nCacheFromLocalhost=yes\nReadEtcHosts=no" | sudo tee /etc/systemd/resolved.conf.d/google.conf &>/dev/null;
+         echo -e "[Resolve]\nDNS=1.0.0.1#1dot1dot1dot1.cloudflare-dns.com\nFallbackDNS=\nDNSOverTLS=yes\nDNSSEC=yes\nCache=yes\nCacheFromLocalhost=yes\nReadEtcHosts=no" | sudo tee /etc/systemd/resolved.conf.d/cloudflare.conf &>/dev/null;
+         cat /etc/systemd/resolved.conf.d/google.conf
+         echo ""
+         cat /etc/systemd/resolved.conf.d/cloudflare.conf
+         echo ""
+         echo "nameserver 127.0.0.53" | sudo tee /etc/resolv.conf.DNSoverride &>/dev/null;
+         sudo ln -svf /etc/resolv.conf.DNSoverride /etc/resolv.conf
+         cat -n /etc/resolv.conf
+         echo ""
+         cat -n /etc/hosts
+         echo ""
+         sudo systemctl restart systemd-resolved.service
+         sleep 3s
+         nc -z -v 127.0.0.53 53 && echo ""
+
+      - name: Prepare packages
+        run: sudo apt-get install -y wget curl zstd zip grepcidr libarchive-tools dos2unix moreutils jq gawk parallel language-pack-ru language-pack-en locales coreutils util-linux bash && sudo sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && sudo locale-gen --no-purge en_US.UTF-8
+
+      - name: Download merge IPs IPv4
+        env:
+          LANG: en_US.UTF-8
+          CHARSET: UTF-8
+          TYPE: ipv4
+          ACCOUNT_NAME: herrbischoff
+        run: |
+          set -euo pipefail
+          set -x
+          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${ACCOUNT_NAME}/country-ip-blocks/refs/heads/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done
+
+#      - name: Download merge IPs IPv6
+#        env:
+#          LANG: en_US.UTF-8
+#          CHARSET: UTF-8
+#          TYPE: ipv6
+#          ACCOUNT_NAME: herrbischoff
+#        run: |
+#          set -euo pipefail
+#          set -x
+#          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${ACCOUNT_NAME}/country-ip-blocks/refs/heads/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done && rm -fv ./${TYPE}/.git_keep;
+
+      - name: Unmerge merge IPs IPv4,sorting and compress archive
+        env:
+          LANG: en_US.UTF-8
+          CHARSET: UTF-8
+          TYPE: ipv4
+        run: |
+          set -euo pipefail
+          source utils/unmerge.sh && for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by}; do while read -r cidr; do cidr2ip "$cidr"; done < ${TYPE}/${iso_codes_country}.cidr | sort -k1,1n -k2,2n -k3,3n -k4,4n -T . | uniq | grepcidr -v '0.0.0.0/8' | grepcidr -v '0.0.0.0/32' | grepcidr -v '10.0.0.0/8' | grepcidr -v '100.64.0.0/10' | grepcidr -v '127.0.0.0/8' | grepcidr -v '169.254.0.0/16' | grepcidr -v '172.16.0.0/12' | grepcidr -v '192.0.0.0/24' | grepcidr -v '192.0.0.0/29' | grepcidr -v '192.0.0.170/32' | grepcidr -v '192.0.0.171/32' | grepcidr -v '192.0.2.0/24' | grepcidr -v '192.88.99.0/24' | grepcidr -v '192.88.99.1/32' | grepcidr -v '192.168.0.0/16' | grepcidr -v '198.51.100.0/24' | grepcidr -v '198.18.0.0/15' | grepcidr -v '203.0.113.0/24' | grepcidr -v '224.0.0.0/4' | grepcidr -v '240.0.0.0/4' | grepcidr -v '255.255.255.255/32' | zstd -o ${TYPE}/unmerge_${iso_codes_country}.txt.zst;done
+
+      - name: Forming a sheet with IPs of countries that are CIS members (including former members)
+        env:
+            LANG: en_US.UTF-8
+            CHARSET: UTF-8
+            TYPE: ipv4
+        run: |
+            set -euo pipefail
+            rm -f ${TYPE}/unmerge_cis.txt.zst ${TYPE}/unmerge_cis.txt && for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by}; do zstdcat ipv4/unmerge_${iso_codes_country}.txt.zst >> ${TYPE}/unmerge_cis.txt;done && ls -lhs ${TYPE}/unmerge_cis.txt
+            cat ${TYPE}/unmerge_cis.txt | sort -k1,1n -k2,2n -k3,3n -k4,4n -T . | uniq | zstd -o ${TYPE}/unmerge_cis.txt.zst && rm -f ${TYPE}/unmerge_cis.txt
+
+      - name: Cleanup files repos
+        run: |
+            set -euo pipefail
+            set -x
+            find . -name "*.txt" -delete && find . -name "*.cidr" -delete && touch ipv4/.git_keep.txt ipv6/.git_keep.txt
+
+      - name: Commit unmerge list country
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+              commit_message: "Auto-update unmerge list's IP"
+              file_pattern: "*/unmerge_*.txt.zst"
+              commit_options: "--no-verify"
+              repository: .
+              commit_user_name: github-actions[bot]
+              commit_user_email: github-actions[bot]@users.noreply.github.com
+              commit_author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
