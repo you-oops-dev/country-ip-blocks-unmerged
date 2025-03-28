@@ -3,7 +3,7 @@ name: "Update"
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 16 * * *'
+    - cron: '30 15 * * *'
 jobs:
   updater:
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
         run: |
           set -euo pipefail
           set -x
-          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${ACCOUNT_NAME}/country-ip-blocks/refs/heads/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done
+          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by,fi,se,no,ee,lt,pl,lv,mn}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${ACCOUNT_NAME}/country-ip-blocks/refs/heads/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done
 
 #      - name: Download merge IPs IPv6
 #        env:
@@ -54,7 +54,7 @@ jobs:
 #        run: |
 #          set -euo pipefail
 #          set -x
-#          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${ACCOUNT_NAME}/country-ip-blocks/refs/heads/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done && rm -fv ./${TYPE}/.git_keep;
+#          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by,fi,se,no,ee,lt,pl,lv,mn}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${ACCOUNT_NAME}/country-ip-blocks/refs/heads/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done && rm -fv ./${TYPE}/.git_keep;
 
       - name: Unmerge merge IPs IPv4,sorting and compress archive
         env:
@@ -63,7 +63,7 @@ jobs:
           TYPE: ipv4
         run: |
           set -euo pipefail
-          source utils/unmerge.sh && for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by}; do while read -r cidr; do cidr2ip "$cidr"; done < ${TYPE}/${iso_codes_country}.cidr | sort -k1,1n -k2,2n -k3,3n -k4,4n -T . | uniq | grepcidr -v '0.0.0.0/8' | grepcidr -v '0.0.0.0/32' | grepcidr -v '10.0.0.0/8' | grepcidr -v '100.64.0.0/10' | grepcidr -v '127.0.0.0/8' | grepcidr -v '169.254.0.0/16' | grepcidr -v '172.16.0.0/12' | grepcidr -v '192.0.0.0/24' | grepcidr -v '192.0.0.0/29' | grepcidr -v '192.0.0.170/32' | grepcidr -v '192.0.0.171/32' | grepcidr -v '192.0.2.0/24' | grepcidr -v '192.88.99.0/24' | grepcidr -v '192.88.99.1/32' | grepcidr -v '192.168.0.0/16' | grepcidr -v '198.51.100.0/24' | grepcidr -v '198.18.0.0/15' | grepcidr -v '203.0.113.0/24' | grepcidr -v '224.0.0.0/4' | grepcidr -v '240.0.0.0/4' | grepcidr -v '255.255.255.255/32' | zstd -o ${TYPE}/unmerge_${iso_codes_country}.txt.zst;done
+          source utils/unmerge.sh && for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by,fi,se,no,ee,lt,pl,lv,mn}; do while read -r cidr; do cidr2ip "$cidr"; done < ${TYPE}/${iso_codes_country}.cidr | sort -k1,1n -k2,2n -k3,3n -k4,4n -T . | uniq | grepcidr -v '0.0.0.0/8' | grepcidr -v '0.0.0.0/32' | grepcidr -v '10.0.0.0/8' | grepcidr -v '100.64.0.0/10' | grepcidr -v '127.0.0.0/8' | grepcidr -v '169.254.0.0/16' | grepcidr -v '172.16.0.0/12' | grepcidr -v '192.0.0.0/24' | grepcidr -v '192.0.0.0/29' | grepcidr -v '192.0.0.170/32' | grepcidr -v '192.0.0.171/32' | grepcidr -v '192.0.2.0/24' | grepcidr -v '192.88.99.0/24' | grepcidr -v '192.88.99.1/32' | grepcidr -v '192.168.0.0/16' | grepcidr -v '198.51.100.0/24' | grepcidr -v '198.18.0.0/15' | grepcidr -v '203.0.113.0/24' | grepcidr -v '224.0.0.0/4' | grepcidr -v '240.0.0.0/4' | grepcidr -v '255.255.255.255/32' | zstd -o ${TYPE}/unmerge_${iso_codes_country}.txt.zst;done
 
       - name: Forming a sheet with IPs of countries that are CIS members (including former members)
         env:
