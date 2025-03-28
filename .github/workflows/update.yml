@@ -3,7 +3,7 @@ name: "Update"
 on:
   workflow_dispatch:
   schedule:
-    - cron: '00 19 * * *'
+    - cron: '30 16 * * *'
 jobs:
   updater:
     runs-on: ubuntu-latest
