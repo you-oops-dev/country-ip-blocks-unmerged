@@ -45,6 +45,16 @@ jobs:
           set -x
           for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by,fi,se,no,ee,lt,pl,lv,mn}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${ACCOUNT_NAME}/country-ip-blocks/refs/heads/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done
 
+      - name: Add RU ISP and bank in unmerge_ru.txt with sorting and remove duplicate IP'S in list IPv4
+        env:
+          LANG: en_US.UTF-8
+          CHARSET: UTF-8
+          TYPE: ipv4
+          NAME_ACCOUNT_GITHUB: you-oops-dev
+        run: |
+            set -euo pipefail
+            curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/rostelecom/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/mts/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/beeline/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/rascom/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/corbina/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/qrator/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/ORI/GRCHC/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/skynet/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/domru/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/ufanet/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/main/vkontakte/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/banki/alfa-bank/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/banki/bspb/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/banki/gazprombank/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/banki/nspk/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/banki/pochta-bank/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/banki/sber/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/banki/tinkoff/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/banki/vtb/${TYPE}_merged.txt https://raw.githubusercontent.com/${NAME_ACCOUNT_GITHUB}/ipranges/refs/heads/main/banki/yoomoney/${TYPE}_merged.txt >> ./${TYPE}/ru.cidr
+
 #      - name: Download merge IPs IPv6
 #        env:
 #          LANG: en_US.UTF-8
