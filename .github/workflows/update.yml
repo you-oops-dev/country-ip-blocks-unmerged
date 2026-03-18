@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           set -x
-          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by,fi,se,no,ee,lt,pl,lv,mn}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${ACCOUNT_NAME}/country-ip-blocks/refs/heads/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done
+          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by,fi,se,no,ee,lt,pl,lv,mn}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://${ACCOUNT_NAME}.com/code/me/country-ip-blocks/raw/branch/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done
 
       - name: Add RU ISP and bank in unmerge_ru.txt with sorting and remove duplicate IP'S in list IPv4
         env:
@@ -75,7 +75,7 @@ jobs:
 #        run: |
 #          set -euo pipefail
 #          set -x
-#          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by,fi,se,no,ee,lt,pl,lv,mn}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://raw.githubusercontent.com/${ACCOUNT_NAME}/country-ip-blocks/refs/heads/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done && rm -fv ./${TYPE}/.git_keep;
+#          for iso_codes_country in {az,am,kz,kg,md,ru,tj,uz,tm,ge,ua,by,fi,se,no,ee,lt,pl,lv,mn}; do curl --max-time 30 --retry-delay 3 --retry 10 -4s https://${ACCOUNT_NAME}.com/code/me/country-ip-blocks/raw/branch/master/${TYPE}/${iso_codes_country}.cidr > ./${TYPE}/${iso_codes_country}.cidr;done && rm -fv ./${TYPE}/.git_keep;
 
       - name: Unmerge merge IPs IPv4,sorting and compress archive
         env:
