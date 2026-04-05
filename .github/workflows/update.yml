@@ -47,6 +47,7 @@ jobs:
         env:
           LANG: en_US.UTF-8
           CHARSET: UTF-8
+          TYPE: ipv4
         run: |
           set -euo pipefail
           set -x
